@@ -6,9 +6,9 @@ import com.sora.qrcodetrans.R
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ResultTransActivity : AppCompatActivity() {
+class ResultPaymentActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_result_trans)
+        setContentView(R.layout.activity_result_payment)
     }
 }

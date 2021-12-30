@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:usesCleartextTraffic="true"
         android:name=".QRCodeApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -14,15 +15,23 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.QRCodeTrans">
         <activity
-            android:name=".screen.ResultTransActivity"
+            android:screenOrientation="portrait"
+            android:name=".screen.SettingActivity"
             android:exported="false" />
         <activity
+            android:screenOrientation="portrait"
+            android:name=".screen.ResultPaymentActivity"
+            android:exported="false" />
+        <activity
+            android:screenOrientation="portrait"
             android:name=".screen.ScanQRCodeActivity"
             android:exported="false" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".screen.ResultQRCodeActivity"
             android:exported="false" />
         <activity
+            android:screenOrientation="portrait"
             android:name=".screen.MainActivity"
             android:exported="true">
             <intent-filter>

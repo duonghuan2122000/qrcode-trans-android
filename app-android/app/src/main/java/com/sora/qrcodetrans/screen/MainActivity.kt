@@ -1,5 +1,6 @@
 package com.sora.qrcodetrans.screen
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,10 +10,18 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.Button
+import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import com.sora.qrcodetrans.R
+import com.sora.qrcodetrans.data.qrcode.DataQRCode
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.ExecutorService
 
@@ -20,15 +29,47 @@ import java.util.concurrent.ExecutorService
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        val SCANQRCODE = 1
+        // key cho data qrcode
         val SCANQRCODEDATA = "SCANQRCODEDATA"
+        val SCANQRCODEDATAERR = "SCANQRCODEDATAERR"
+        val SCANQRCODEDATAERRMESS = "SCANQRCODEDATAERRMESS"
     }
 
     /**
-     * CreatedBy: dbhuan 21/12/2021
+     * khởi tạo acitivity đợi kết quả quét mã QRCode
+     * CreatedBy: dbhuan 30/12/2021
      */
-    private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
-    private lateinit var cameraExecutor: ExecutorService
+    var scanQRCodeActivity =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val intentResult = result.data
+                val err = intentResult?.getBooleanExtra(SCANQRCODEDATAERR, false)
+                if (err == null || err == false) {
+                    val data = intentResult?.getBundleExtra(SCANQRCODEDATA)?.getParcelable<DataQRCode>(
+                        SCANQRCODEDATA
+                    )
+                    val bundle = Bundle().apply {
+                        putParcelable(SCANQRCODEDATA, data)
+                    }
+                    val intent = Intent(this, ResultQRCodeActivity::class.java).apply {
+                        putExtra(SCANQRCODEDATA, bundle)
+                    }
+                    startActivity(intent)
+                } else {
+                    val message = intentResult?.getStringExtra(SCANQRCODEDATAERRMESS)
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle(message)
+                        .setNegativeButton("Đóng") { dialog, which ->
+                            dialog.cancel()
+                        }
+                        .setPositiveButton("Thử lại") { dialog, which ->
+                            dialog.cancel()
+                            startActivityScanQRCodeForResult()
+                        }
+                        .show()
+                }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,41 +77,71 @@ class MainActivity : AppCompatActivity() {
 
         checkCameraPermission()
 
+        handleTopAppBar()
+
+        /**
+         * Sự kiện click button quét qrcode
+         * 1. Chuyển hướng sang màn quét qrcode
+         * 2. Đợi kết quả quét qrcode từ activity trên
+         */
         findViewById<Button>(R.id.btnScanQRCode).setOnClickListener {
-            val intent = Intent(this, ScanQRCodeActivity::class.java)
-            startActivityForResult(intent, SCANQRCODE)
+            startActivityScanQRCodeForResult()
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    /**
+     * Hàm chuyển hướng sang màn hình quét qrcode
+     * CreatedBy: dbhuan 30/12/2021
+     */
+    private fun startActivityScanQRCodeForResult() {
+        val intent = Intent(this, ScanQRCodeActivity::class.java)
+        scanQRCodeActivity.launch(intent)
+    }
 
-        if(requestCode == SCANQRCODE){
-            if(resultCode == Activity.RESULT_OK){
-                val data = data?.getStringExtra(SCANQRCODEDATA)
-                Log.d("MainActivity", data!!)
-                val intent = Intent(this, ResultQRCodeActivity::class.java).apply {
-                    putExtra(SCANQRCODEDATA, data)
+    /**
+     * Hàm xử lý top app bar
+     * CreatedBy: dbhuan 30/12/2021
+     */
+    private fun handleTopAppBar() {
+        val topAppBar = findViewById<MaterialToolbar>(R.id.topAppBar)
+
+        topAppBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.menu_settings -> {
+                    val settingIntent = Intent(this, SettingActivity::class.java)
+                    startActivity(settingIntent)
+                    true
                 }
-                startActivity(intent)
+                else -> false
             }
         }
     }
 
     /**
-     * hàm kiểm tra quyền truy cập máy ảnh
-     * CreatedBy: dbhuan 21/12/2021
+     * Hàm kiểm tra quyền truy cập camera
+     * CreatedBy: dbhuan 30/12/2021
      */
-    private fun checkCameraPermission(){
-        if(ContextCompat.checkSelfPermission(
+    private fun checkCameraPermission() {
+        val requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                if (!isGranted) {
+                    // yêu cầu cấp quyền lại
+                    checkCameraPermission()
+                }
+            }
+
+        when {
+            ContextCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.CAMERA,
-        ) != PackageManager.PERMISSION_GRANTED){
-            Intent().also {
-                it.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                it.data = Uri.fromParts("package", packageName, null)
-                startActivity(it)
-                finish()
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // quyền đã được cấp
+            }
+            else -> {
+                // chưa được cấp quyền, khởi chạy launcher yêu cầu quyền
+                requestPermissionLauncher.launch(
+                    Manifest.permission.CAMERA
+                )
             }
         }
     }

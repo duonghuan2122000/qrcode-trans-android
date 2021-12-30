@@ -1,37 +1,46 @@
 package com.sora.qrcodetrans.di
 
-import com.sora.qrcodetrans.data.ApiService
-import com.sora.qrcodetrans.data.RetrofitBuilder
-import com.sora.qrcodetrans.data.trans.TransService
+import com.sora.qrcodetrans.data.qrcode.QRCodeService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
-import dagger.hilt.android.components.ActivityRetainedComponent
-import dagger.hilt.android.internal.managers.ApplicationComponentManager
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Singleton
 
+/**
+ * Object định nghĩa dependency injection cho toàn bộ app
+ * CreatedBy: dbhuan 30/12/2021
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object QRCodeModule {
 
-    private const val BASE_URL = "https://jsonplaceholder.typicode.com/"
+    private const val BASE_URL = "http://192.168.68.113:3000/"
 
+    /**
+     * DI cho retrofit
+     * CreatedBy: dbhuan 30/12/2021
+     */
     @Provides
-    fun provideRetrofit(): Retrofit =
-        Retrofit.Builder()
+    fun provideRetrofit(): Retrofit {
+        val interceptor = HttpLoggingInterceptor()
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        val client = OkHttpClient.Builder().addInterceptor(interceptor).build();
+        return Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+    }
 
+    /**
+     * DI cho dịch vụ QRCode
+     * CreatedBy: dbhuan 30/12/2021
+     */
     @Provides
-    fun provideQRCodeService(retrofit: Retrofit): TransService =
-        retrofit.create(TransService::class.java)
-
-    @Provides
-    fun provideApiService(retrofit: Retrofit): ApiService =
-        retrofit.create(ApiService::class.java)
+    fun provideQRCodeService(retrofit: Retrofit): QRCodeService =
+        retrofit.create(QRCodeService::class.java)
 }

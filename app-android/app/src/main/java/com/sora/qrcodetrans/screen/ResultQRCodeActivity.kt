@@ -1,16 +1,14 @@
 package com.sora.qrcodetrans.screen
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
-import android.widget.Toast
-import androidx.activity.viewModels
-import androidx.lifecycle.Observer
+import android.widget.TextView
 import com.sora.qrcodetrans.R
-import com.sora.qrcodetrans.data.Status
-import com.sora.qrcodetrans.viewModel.MainViewModel
+import com.sora.qrcodetrans.data.qrcode.DataQRCode
 import dagger.hilt.android.AndroidEntryPoint
+import java.text.DecimalFormat
 
 @AndroidEntryPoint
 class ResultQRCodeActivity : AppCompatActivity() {
@@ -19,26 +17,22 @@ class ResultQRCodeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_result_qrcode)
 
-        val data = intent.getStringExtra(MainActivity.SCANQRCODEDATA)
-        Toast.makeText(this, data, Toast.LENGTH_SHORT).show()
+        val tvMerchantName = findViewById<TextView>(R.id.merchantName)
+        val tvTerminalName = findViewById<TextView>(R.id.terminalName)
+        val tvTxnId = findViewById<TextView>(R.id.txnId)
+        val tvAmount = findViewById<TextView>(R.id.amount)
+        val btnPayment = findViewById<Button>(R.id.btnPayment)
 
-        val viewModel: MainViewModel by viewModels()
+        intent.getBundleExtra(MainActivity.SCANQRCODEDATA)?.getParcelable<DataQRCode>(MainActivity.SCANQRCODEDATA)?.let { dataQRCode ->
+            tvMerchantName.text = dataQRCode.merchantName
+            tvTerminalName.text = dataQRCode.terminalName
+            tvTxnId.text = dataQRCode.txnId
+            tvAmount.text = DecimalFormat("#,###").format(dataQRCode.amount.toLong()) + " VND"
+        }
 
-        findViewById<Button>(R.id.btnTrans).setOnClickListener {
-            viewModel.getUsers().observe(this, Observer {
-                it?.let { resource ->
-                    when(resource.status){
-                        Status.SUCCESS -> {
-                            val users = resource.data
-                            if (users != null) {
-                                for (user in users){
-                                    Log.d("user", user.id.toString() + " " + user.name.toString() + " " + user.username)
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+        btnPayment.setOnClickListener {
+            val intent = Intent(this, ResultPaymentActivity::class.java)
+            startActivity(intent)
         }
     }
 }

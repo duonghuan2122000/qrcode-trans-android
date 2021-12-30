@@ -9,6 +9,10 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.get('/test', (req, res) => {
+    return res.status(200).send('ok');
+})
+
 app.post('/qrcodes/parse', (req, res) => {
     let { data } = req.body;
 
@@ -30,22 +34,28 @@ app.post('/qrcodes/parse', (req, res) => {
         });
     }
 
-    let objRes = {
-        countryCode: "VN",
-        merchantCode: "0000102",
-        payType: "03",
-        productId: "",
-        txnId: "",
-        billNumber: "123abc",
-        amount: "123",
-        ccy: "704",
-        expDate: "211228100000",
-        desc: "",
-        tipAndFee: "",
-        consumerId: "",
-        purpose: ""
-    };
-    return res.status(200).json(objRes);
+    setTimeout(() => {
+        let objRes = {
+            txnId: "123abc",
+            mobile: "",
+            accountNo: "",
+            amount: "1234",
+            masterMerCode: "",
+            merchantCode: "1234",
+            merchantName: "CTCP JETPAY TEST",
+            terminalId: "1234",
+            terminalName: "DBHuan",
+            name: "",
+            phone: "",
+            provinceId: "",
+            districtId: "",
+            address: "",
+            email: ""
+        };
+        return res.status(200).json(objRes);
+    }, 1000)
+
+
 
 });
 

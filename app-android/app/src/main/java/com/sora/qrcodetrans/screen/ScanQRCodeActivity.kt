@@ -5,8 +5,13 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.util.Size
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -15,12 +20,16 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.sora.qrcodetrans.R
+import com.sora.qrcodetrans.data.Status
+import com.sora.qrcodetrans.viewModel.qrcode.QRCodeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -33,12 +42,22 @@ class ScanQRCodeActivity : AppCompatActivity() {
      */
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var cameraExecutor: ExecutorService
+    private val qrcodeViewModel: QRCodeViewModel by viewModels()
+
+    private lateinit var frameLayout: FrameLayout
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scan_qrcode)
 
-        showPreviewCamera();
+        frameLayout = findViewById(R.id.frameLayout)
+        progressBar = findViewById(R.id.progressBar)
+
+        progressBar.visibility = View.GONE
+        frameLayout.visibility = View.VISIBLE
+
+        showPreviewCamera()
     }
 
     private fun showPreviewCamera() {
@@ -70,7 +89,7 @@ class ScanQRCodeActivity : AppCompatActivity() {
             .setTargetResolution(Size(1280, 720))
             .build()
 
-        imageAnalysis.setAnalyzer(cameraExecutor, ImageAnalysis.Analyzer { imageProxy ->
+        imageAnalysis.setAnalyzer(cameraExecutor, { imageProxy ->
             scanBarcode(imageProxy, cameraProvider)
         })
 
@@ -86,7 +105,8 @@ class ScanQRCodeActivity : AppCompatActivity() {
     private fun scanBarcode(imageProxy: ImageProxy, cameraProvider: ProcessCameraProvider?) {
         val options = BarcodeScannerOptions.Builder()
             .setBarcodeFormats(
-                Barcode.FORMAT_QR_CODE)
+                Barcode.FORMAT_QR_CODE
+            )
             .build()
         imageProxy.image?.let { img ->
             val inputImage = InputImage.fromMediaImage(img, imageProxy.imageInfo.rotationDegrees)
@@ -106,20 +126,41 @@ class ScanQRCodeActivity : AppCompatActivity() {
 
     private fun readBarcodeData(barcodes: List<Barcode>) {
         var data: String = ""
-        for(barcode in barcodes){
-            when(barcode.valueType){
+        for (barcode in barcodes) {
+            when (barcode.valueType) {
                 Barcode.TYPE_TEXT -> {
                     data = barcode.displayValue
-                    if(!data.isEmpty()){
+                    if (!data.isEmpty()) {
                         cameraExecutor.shutdown()
+                        qrcodeViewModel.parseQRCode(data).observe(this, { resource ->
+                            when (resource.status) {
+                                Status.LOADING -> {
+                                    progressBar.visibility = View.VISIBLE
+                                    frameLayout.visibility = View.GONE
+                                }
+                                Status.SUCCESS -> {
+                                    val bundle = Bundle().apply {
+                                        putParcelable(MainActivity.SCANQRCODEDATA, resource.data)
+                                    }
+                                    val intent = Intent().apply {
+                                        putExtra(MainActivity.SCANQRCODEDATA, bundle)
+                                    }
 
-                        val intent = Intent().apply {
-                            putExtra(MainActivity.SCANQRCODEDATA, data)
-                        }
+                                    setResult(Activity.RESULT_OK, intent)
 
-                        setResult(Activity.RESULT_OK, intent)
+                                    finish()
+                                }
+                                Status.ERROR -> {
+                                    val intent = Intent().apply {
+                                        putExtra(MainActivity.SCANQRCODEDATAERR, true)
+                                        putExtra(MainActivity.SCANQRCODEDATAERRMESS, resource.message)
+                                    }
 
-                        finish()
+                                    setResult(Activity.RESULT_OK, intent)
+                                    finish()
+                                }
+                            }
+                        })
                         break
                     }
                 }

@@ -1,5 +1,3 @@
-2021/12/27-21:31:55.079 45e0 Recovering log #22
-2021/12/27-21:31:55.079 45e0 Level-0 table #24: started
-2021/12/27-21:31:55.100 45e0 Level-0 table #24: 181 bytes OK
-2021/12/27-21:31:55.141 45e0 Delete type=0 #22
-2021/12/27-21:31:55.141 45e0 Delete type=3 #20
+2021/12/30-22:59:26.759 2cfc Recovering log #49
+2021/12/30-22:59:26.983 2cfc Delete type=0 #49
+2021/12/30-22:59:26.983 2cfc Delete type=3 #48
