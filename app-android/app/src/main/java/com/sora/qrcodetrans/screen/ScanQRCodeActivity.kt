@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.util.Size
 import android.view.View
 import android.widget.FrameLayout
@@ -20,8 +19,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.Observer
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -29,6 +26,7 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.sora.qrcodetrans.R
 import com.sora.qrcodetrans.data.Status
+import com.sora.qrcodetrans.viewModel.auth.GetTokenViewModel
 import com.sora.qrcodetrans.viewModel.qrcode.QRCodeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.ExecutorService
@@ -36,6 +34,7 @@ import java.util.concurrent.Executors
 
 @AndroidEntryPoint
 class ScanQRCodeActivity : AppCompatActivity() {
+    private val getTokenViewModel: GetTokenViewModel by viewModels()
 
     /**
      * CreatedBy: dbhuan 21/12/2021
@@ -124,6 +123,9 @@ class ScanQRCodeActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Hàm đọc thông tin qrcode
+     */
     private fun readBarcodeData(barcodes: List<Barcode>) {
         var data: String = ""
         for (barcode in barcodes) {
@@ -132,28 +134,44 @@ class ScanQRCodeActivity : AppCompatActivity() {
                     data = barcode.displayValue
                     if (!data.isEmpty()) {
                         cameraExecutor.shutdown()
-                        qrcodeViewModel.parseQRCode(data).observe(this, { resource ->
+
+                        // gọi api parse data QRCode
+                        val config = getTokenViewModel.getConfig()
+                        val token = getTokenViewModel.getToken()
+                        qrcodeViewModel.parseQRCode(
+                            config.urlParseQRCode,
+                            data,
+                            token
+                        ).observe(this, { resource ->
                             when (resource.status) {
+                                // đang gọi api
                                 Status.LOADING -> {
                                     progressBar.visibility = View.VISIBLE
                                     frameLayout.visibility = View.GONE
                                 }
+
+                                // thành công -> quay về màn hình chính
                                 Status.SUCCESS -> {
                                     val bundle = Bundle().apply {
-                                        putParcelable(MainActivity.SCANQRCODEDATA, resource.data)
+                                        putParcelable(MainActivity.ScanQRCodeData, resource.data)
                                     }
                                     val intent = Intent().apply {
-                                        putExtra(MainActivity.SCANQRCODEDATA, bundle)
+                                        putExtra(MainActivity.ScanQRCodeData, bundle)
                                     }
 
                                     setResult(Activity.RESULT_OK, intent)
 
                                     finish()
                                 }
+
+                                // thất bại -> quay về màn hình chính kèm thông báo lỗi
                                 Status.ERROR -> {
                                     val intent = Intent().apply {
-                                        putExtra(MainActivity.SCANQRCODEDATAERR, true)
-                                        putExtra(MainActivity.SCANQRCODEDATAERRMESS, resource.message)
+                                        putExtra(MainActivity.ScanQRCodeDataErr, true)
+                                        putExtra(
+                                            MainActivity.ScanQRCodeDataErrMsg,
+                                            resource.message
+                                        )
                                     }
 
                                     setResult(Activity.RESULT_OK, intent)

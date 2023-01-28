@@ -1,5 +1,6 @@
 package com.sora.qrcodetrans.data.qrcode
 
+import com.sora.qrcodetrans.data.auth.ConfigQRCode
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -12,5 +13,7 @@ class QRCodeRepository @Inject constructor(private val qrCodeService: QRCodeServ
      * hàm parse thông tin qrcode
      * CreatedBy: dbhuan 30/12/2021
      */
-    suspend fun parseQRCode(data: String): Response<DataQRCode> = qrCodeService.parseQRCode(DataQRCodeReq(data))
+    suspend fun parseQRCode(url: String, data: String, token: String): Response<DataQRCode> =
+        qrCodeService.parseQRCode(url, data, token)
+
 }

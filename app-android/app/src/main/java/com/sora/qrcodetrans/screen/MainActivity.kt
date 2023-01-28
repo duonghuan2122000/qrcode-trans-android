@@ -4,35 +4,35 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.Settings
-import android.util.Log
 import android.widget.Button
-import android.widget.Toast
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.common.util.concurrent.ListenableFuture
 import com.sora.qrcodetrans.R
 import com.sora.qrcodetrans.data.qrcode.DataQRCode
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.concurrent.ExecutorService
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        // key cho data qrcode
-        val SCANQRCODEDATA = "SCANQRCODEDATA"
-        val SCANQRCODEDATAERR = "SCANQRCODEDATAERR"
-        val SCANQRCODEDATAERRMESS = "SCANQRCODEDATAERRMESS"
+        /**
+         * Key của obj data QRCode
+         */
+        val ScanQRCodeData = "SCANQRCODEDATA"
+
+        /**
+         * Key nhận biết thông báo lỗi
+         */
+        val ScanQRCodeDataErr = "SCANQRCODEDATAERR"
+
+        /**
+         * Key Msg lỗi qrcode
+         */
+        val ScanQRCodeDataErrMsg = "SCANQRCODEDATAERRMESS"
     }
 
     /**
@@ -41,22 +41,28 @@ class MainActivity : AppCompatActivity() {
      */
     var scanQRCodeActivity =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            // nếu có kết quả trả về
             if (result.resultCode == Activity.RESULT_OK) {
+                // lấy data từ intent
                 val intentResult = result.data
-                val err = intentResult?.getBooleanExtra(SCANQRCODEDATAERR, false)
+
+                // kiểm tra có data qrcode có lỗi
+                val err = intentResult?.getBooleanExtra(ScanQRCodeDataErr, false)
                 if (err == null || err == false) {
-                    val data = intentResult?.getBundleExtra(SCANQRCODEDATA)?.getParcelable<DataQRCode>(
-                        SCANQRCODEDATA
+                    // qrcode hợp lệ -> tạo intent và chuyển hướng sang màn thông tin QRCode
+                    val data = intentResult?.getBundleExtra(ScanQRCodeData)?.getParcelable<DataQRCode>(
+                        ScanQRCodeData
                     )
                     val bundle = Bundle().apply {
-                        putParcelable(SCANQRCODEDATA, data)
+                        putParcelable(ScanQRCodeData, data)
                     }
                     val intent = Intent(this, ResultQRCodeActivity::class.java).apply {
-                        putExtra(SCANQRCODEDATA, bundle)
+                        putExtra(ScanQRCodeData, bundle)
                     }
                     startActivity(intent)
                 } else {
-                    val message = intentResult?.getStringExtra(SCANQRCODEDATAERRMESS)
+                    // qrcode không hợp lệ -> hiển thị thông báo lỗi
+                    val message = intentResult?.getStringExtra(ScanQRCodeDataErrMsg)
                     MaterialAlertDialogBuilder(this)
                         .setTitle(message)
                         .setNegativeButton("Đóng") { dialog, which ->

@@ -1,87 +1,53 @@
 package com.sora.qrcodetrans.data.qrcode
 
 import android.os.Parcelable
+import com.squareup.moshi.Json
 import kotlinx.parcelize.Parcelize
+
+@Parcelize
+data class ResponseQRCode(
+    val isSuccess: Boolean,
+    val data: DataQRCode
+) : Parcelable
 
 /**
  * Thông tin qrcode
  * CreatedBy: dbhuan 30/12/2021
  */
 @Parcelize
-data class DataQRCode (
+data class DataQRCode(
+    @field:Json( name = "IsSuccess") val isSuccess: Boolean = true,
+
+    @field:Json( name = "ErrorCode") val errorCode: String? = null,
+
     /**
      * mã đơn hàng
      */
-    val txnId: String,
-    /**
-     * Số điện thoại
-     */
-    val mobile: String? = "",
-    /**
-     * Số tài khoản
-     */
-    val accountNo: String? = "",
+    @field:Json( name = "TxnId") val txnId: String,
     /**
      * Số tiền
      */
-    val amount: String,
+
+    @field:Json( name = "Amount") val amount: String,
     /**
      * Mã quy định của ngân hàng
      */
-    val masterMerCode: String? = "",
+    @field:Json( name = "masterMerCode") val masterMerCode: String? = "",
     /**
      * Mã merchant ngân hàng cung cấp
      */
-    val merchantCode: String,
+    @field:Json( name = "MerchantCode") val merchantCode: String,
     /**
      * Tên merchant ngân hàng cung cấp
      */
-    val merchantName: String?,
+    @field:Json( name = "MerchantName") val merchantName: String?,
     /**
      * Mã điểm thu
      */
-    val terminalId: String,
+    @field:Json( name = "TerminalId") val terminalId: String,
     /**
      * Tên điểm thu
      */
-    val terminalName: String?,
-    /**
-     * Tên
-     */
-    val name: String = "",
-    /**
-     * Số điện thoại
-     */
-    val phone: String = "",
-    /**
-     * Mã tỉnh
-     */
-    val provinceId: String = "",
-    /**
-     * mã huyện
-     */
-    val districtId: String = "",
-    /**
-     * địa chỉ
-     */
-    val address: String = "",
-    /**
-     * email
-     */
-    val email: String = "",
-    /**
-     * thông tin bổ sung
-     */
-    val addData: List<AddDatum>? = mutableListOf()
-): Parcelable
-
-@Parcelize
-data class AddDatum (
-    val productId: String,
-    val amount: String,
-    val tipAndFee: String,
-    val ccy: String,
-    val qty: String,
-    val note: String
-): Parcelable
+    @field:Json( name = "TerminalName") val terminalName: String?,
+) : Parcelable
 

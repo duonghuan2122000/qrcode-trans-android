@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31829.152
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DBHuan.TestQRCodeMVC", "DBHuan.TestQRCodeMVC\DBHuan.TestQRCodeMVC.csproj", "{C14C4092-892D-4770-A411-8F0941433284}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C14C4092-892D-4770-A411-8F0941433284}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C14C4092-892D-4770-A411-8F0941433284}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C14C4092-892D-4770-A411-8F0941433284}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C14C4092-892D-4770-A411-8F0941433284}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8BAEFB25-F27A-4756-82DB-4C06C0A02DB2}
+	EndGlobalSection
+EndGlobal

@@ -1,8 +1,7 @@
 package com.sora.qrcodetrans.data.qrcode
 
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.POST
+import retrofit2.http.*
 
 /**
  * Interface service của qrcode
@@ -13,6 +12,10 @@ interface QRCodeService {
      * Hàm lấy thông tin qrcode từ data QRCode
      * CreatedBy: dbhuan 30/12/2021
      */
-    @POST("qrcodes/parse")
-    suspend fun parseQRCode(@Body dataQRCodeReq: DataQRCodeReq): Response<DataQRCode>
+    @GET
+    suspend fun parseQRCode(
+        @Url url: String,
+        @Query("data") data: String,
+        @Header("Authorization") token: String
+    ): Response<DataQRCode>
 }

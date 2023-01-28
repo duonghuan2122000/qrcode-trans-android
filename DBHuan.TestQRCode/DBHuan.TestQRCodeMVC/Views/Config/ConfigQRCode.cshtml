@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Config QRCode";
+    Layout = "_Layout";
+    ConfigQRCodeDto config = ViewBag.Config;
+}
+
+<div class="container">
+    <h1 class="fs-3">Cấu hình cho QRCode</h1>
+
+    <form action="/config" method="post">
+        <div class="form-floating mb-3 mt-4">
+            <input type="text" class="form-control" name="ClientId" id="ClientId" placeholder="ClientId" value="@config.ClientId">
+            <label for="ClientId">ClientId</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" name="ClientSecret" id="ClientSecret" placeholder="ClientSecret" value="@config.ClientSecret">
+            <label for="ClientSecret">ClientSecret</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" name="UrlParseQRCode" id="UrlParseQRCode" placeholder="Url parse QRCode" value="@config.UrlParseQRCode">
+            <label for="UrlParseQRCode">Url parse QRCode</label>
+        </div>
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" name="UrlTransactionQRCode" id="UrlTransactionQRCode" placeholder="Url thanh toán QRCode" value="@config.UrlTransactionQRCode">
+            <label for="UrlTransactionQRCode">Url thanh toán QRCode</label>
+        </div>
+        <div>
+            <button class="btn btn-primary" type="submit">Lưu thay đổi</button>
+        </div>
+    </form>
+</div>
